@@ -8,14 +8,14 @@ class RestLib {
     /**
      * The array of middleware, where middleware is a function that takes a context and next caller.
      * It also can be a array of middleware. It means that the middleware will be called in order.
-     * @type {Array<Function|Array<Function>}
+     * @type {Array<Function|Array<Function>>}
      * @private
      */
     #middleware
 
     /**
      * Map of listeners, where key is method and value is the Map, where key is the path and value is the listener.
-     * @type {Map<string, Map<string, Array<Function>>}
+     * @type {Map<string, Map<string, Array<Function>>>}
     */
     #listeners
 
@@ -188,7 +188,7 @@ class RestLib {
 
     /**
      * Registers a middleware.
-     * @param {Function|Array<Function>]} middleware The middleware to register.
+     * @param {Function|Array<Function>} middleware The middleware to register.
      */
     #registerMiddleware(middleware) {
         this.#middleware.push(middleware)
