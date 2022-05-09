@@ -20,7 +20,7 @@
     "./rest.d.ts",
     "package.json"
   ],
-  "types": "./types/rest.d.ts",
+  "types": "./rest.d.ts",
   "engines": {
     "node": ">=14.19.2"
   }
