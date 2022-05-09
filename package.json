@@ -1,6 +1,6 @@
 {
   "name": "rest-library",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "main": "src/rest.js",
   "repository": "https://github.com/PunGy/rest-library.git",
   "author": "Maxim Iakovlev <max.yakovlev555@gmail.com>",
@@ -14,8 +14,11 @@
   ],
   "license": "MIT",
   "files": [
-    "./src/*.js",
-    "./types/*.d.ts"
+    "./rest.js",
+    "./utils.js",
+    "./helpers.js",
+    "./rest.d.ts",
+    "package.json"
   ],
   "types": "./types/rest.d.ts",
   "engines": {

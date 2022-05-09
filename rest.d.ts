@@ -1,3 +1,31 @@
+import { IncomingMessage, ServerResponse } from 'http';
+
+// UTILS
+
+export type NextFn = () => void
+
+/**
+ * Context object containing the request and response objects.
+ */
+export type Context = {
+    request: IncomingMessage,
+    response: ServerResponse & {
+        body?: any;
+        send: (body: any, status?: number) => void;
+        params: Record<string, string>;
+    },
+    query: string | undefined;
+}
+
+/**
+ * Parses the body of the given request
+ * @param {Context} ctx context of the request
+ * @param {Function} next call next middleware
+ */
+export function parseBodyMiddleware(ctx: Context, next: NextFn): Promise<void>;
+
+// HELPERS
+
 import { NextFn, Context } from "./utils";
 
 /**
@@ -65,3 +93,32 @@ export function applyNext(middleware: Array<Function | Array<Function>>): Array<
  * @param {any} body body to be sent
  */
 export function sendResponse(response: Response, body: any, status?: number): void;
+
+// REST LIBRARY
+
+export = RestLib;
+/**
+ * Class for handling REST http requests
+ */
+declare class RestLib {
+    /**
+     * Starts the server.
+     * @param {number} port The port to listen on.
+     * @param {Function} callback The callback to call when the server is started.
+     * @public
+     */
+    public listen(port: number, callback: () => void): RestLib;
+    
+    /**
+     * Registers a middleware which will be called for all requests.
+     * @param {Function} middleware The middleware listener to add for every request.
+     * @returns {RestLib} The instance.
+     */
+    use(middleware: listener): RestLib;
+    
+    get(path: string, ...listeners: Array<listener>): RestLib;
+    post(path: string, ...listeners: Array<listener>): RestLib;
+    put(path: string, ...listeners: Array<listener>): RestLib;
+    delete(path: string, ...listeners: Array<listener>): RestLib;
+    patch(path: string, ...listeners: Array<listener>): RestLib;
+}
