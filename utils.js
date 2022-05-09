@@ -137,25 +137,26 @@ function sendResponse(response, body, status = 200) {
  * @param {IncomingMessage} request request to be read
  * @returns {Promise<Buffer>} data of the given request
  */
-const readData = (request) => new Promise((resolve, reject) => {
-    const data = []
-    request.on('data', (chunk) => {
-        data.push(chunk)
+function readData(request) {
+    return new Promise((resolve, reject) => {
+        const data = []
+        request.on('data', (chunk) => {
+            data.push(chunk)
+        })
+        request.on('error', (error) => {
+            reject(error)
+        })
+        request.on('end', () => {
+            resolve(Buffer.concat(data))
+        })
     })
-    request.on('error', (error) => {
-        reject(error)
-    })
-    request.on('end', () => {
-        resolve(Buffer.concat(data))
-    })
-})
-
+}
 /**
  * Parses the body of the given request
  * @param {object} ctx context of the request
  * @param {Function} next call next middleware
  */
-const parseBodyMiddleware = async (ctx, next) => {
+async function parseBodyMiddleware(ctx, next) {
     const req = ctx.request
     
     if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') { 
