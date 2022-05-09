@@ -1,5 +1,5 @@
-const RestLib = require('./rest.js')
-const utils = require('./utils.js')
+import RestLib from './rest.js'
+import { parseBodyMiddleware } from './utils.js'
 
 const onlyAuthorizedMiddleware = (ctx, next) => {
     if (ctx.request.user) {
@@ -11,7 +11,7 @@ const onlyAuthorizedMiddleware = (ctx, next) => {
 
 const app = new RestLib()
 
-app.use(utils.parseBodyMiddleware)
+app.use(parseBodyMiddleware)
 
 app.use((ctx, next) => {
     ctx.request.user = ctx.request.body?.user
@@ -32,7 +32,7 @@ app.get('/list', (ctx, next) => {
     ctx.response.send({ data: ctx.response.list })
     next()
 })
-app.post('/list', utils.onlyAuthorizedMiddleware, (ctx, next) => {
+app.post('/list', onlyAuthorizedMiddleware, (ctx, next) => {
     list.push(ctx.request.body.data)
     ctx.response.send({ data: list })
     next()
