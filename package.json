@@ -1,0 +1,24 @@
+{
+  "name": "rest-library",
+  "version": "1.0.0",
+  "main": "src/rest.js",
+  "repository": "https://github.com/PunGy/rest-library.git",
+  "author": "Maxim Iakovlev <max.yakovlev555@gmail.com>",
+  "description": "Rest library for node.js",
+  "keywords": [
+    "rest",
+    "node.js",
+    "library",
+    "rest-library",
+    "server"
+  ],
+  "license": "MIT",
+  "files": [
+    "./src/*.js",
+    "./types/*.d.ts"
+  ],
+  "types": "./types/rest.d.ts",
+  "engines": {
+    "node": ">=14.19.2"
+  }
+}

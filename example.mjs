@@ -1,5 +1,5 @@
-import RestLib from './rest.js'
-import { parseBodyMiddleware } from './utils.js'
+import RestLib from './src/rest.js'
+import { parseBodyMiddleware } from './src/utils.js'
 
 const onlyAuthorizedMiddleware = (ctx, next) => {
     if (ctx.request.user) {
