@@ -1,9 +1,6 @@
-/**
- * Parses the body of the given request
- * @param {object} ctx context of the request
- * @param {Function} next call next middleware
- */
- async function parseBodyMiddleware(ctx, next) {
+const { readData } = require('./helpers')
+
+async function parseBodyMiddleware(ctx, next) {
     const req = ctx.request
     
     if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') { 
@@ -17,7 +14,6 @@
     }
     next()
 }
-
 
 module.exports = {
     parseBodyMiddleware,

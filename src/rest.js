@@ -1,5 +1,5 @@
 const http = require('http')
-const utils = require('./utils')
+const helpers = require('./helpers')
 
 /**
  * Class for handling REST http requests
@@ -7,15 +7,16 @@ const utils = require('./utils')
 class RestLib {
     /**
      * The array of middleware, where middleware is a function that takes a context and next caller.
-     * It also can be a array of middleware. It means that the middleware will be called in order.
-     * @type {Array<Function|Array<Function>>}
+     * It also can be a array of middleware. It means that it's a listener of some request. It will be called iną order.
+     * @type {Array<import('./rest').Middleware>}
      * @private
      */
     #middleware
 
     /**
      * Map of listeners, where key is method and value is the Map, where key is the path and value is the listener.
-     * @type {Map<string, Map<string, Array<Function>>>}
+     * Actually an array of listeners, chain of middleware. It would be used in the middleware array
+     * @type {Map<string, Map<string, Array<import('./rest').Listener>>>}
     */
     #listeners
 
@@ -38,23 +39,12 @@ class RestLib {
         ])
     }
 
-    /**
-     * Starts the server.
-     * @param {number} port The port to listen on.
-     * @param {Function} callback The callback to call when the server is started.
-     * @public
-     */
     listen(port, callback) {
         this.#server.listen(port, callback)
         
         return this
     }
 
-    /**
-     * Registers a middleware which will be called for all requests.
-     * @param {Function} middleware The middleware to add for every request.
-     * @returns {RestLib} The instance.
-     */
     use(middleware) {
         this.#registerMiddleware(middleware)
 
@@ -107,23 +97,24 @@ class RestLib {
 
         const [path, query] = url.split('?')
 
-        response.send = utils.sendResponse.bind(this, response)
+        response.send = helpers.sendResponse.bind(this, response)
+        request.query = query
+        request.queryParams = query ?? helpers.parseQuery(query)
 
         const context = {
             request,
             response,
-            query,
         }
         
         if (this.#listeners.has(method)) {
             const methodListeners = this.#listeners.get(method)
-            const pathEntries = utils.trim(path, '/').split('/')
+            const pathEntries = helpers.trim(path, '/').split('/')
 
             // Find the listener for the path
             // If there would be a parameters, it will be added to the context
             // @type {[string, Array<Function>]}
             const pathListenersEntry = Array.from(methodListeners.entries()).find(([path]) => {
-                const listenerPathEntries = utils.trim(path, '/').split('/')
+                const listenerPathEntries = helpers.trim(path, '/').split('/')
                 if (pathEntries.length !== listenerPathEntries.length) {
                     return false
                 }
@@ -140,7 +131,7 @@ class RestLib {
                     }
                 })
                 if (isOk) {
-                    context.params = params
+                    context.request.params = params
                 }
                 
                 return isOk
@@ -156,8 +147,8 @@ class RestLib {
                         return middleware === pathListeners
                     }
                     return true
-                }).map(utils.applyNext)
-                const middlewareGenerator = utils.createMiddlewareGenerator(middleware)
+                }).map(helpers.applyNext)
+                const middlewareGenerator = helpers.createMiddlewareGenerator(middleware)
 
                 for await (const fn of middlewareGenerator) {
                     await fn(context)

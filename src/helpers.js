@@ -1,8 +1,3 @@
-/**
- * Returns the function which would be called only once and then persist the result
- * @param {Function} fn function to be called only once
- * @returns {Function} function which would be called only once and then persist the result
- */
 function once(fn) {
     let called = false;
     let result;
@@ -15,11 +10,6 @@ function once(fn) {
     }
 }
 
-/**
- * Returns reversed string
- * @param {string} str string to be reversed
- * @returns {string} reversed string
- */
 function reverse(str)
 {
     let result = ''
@@ -30,12 +20,6 @@ function reverse(str)
     return result
 }
 
-/**
- * Returns string with first char removed
- * @param {string} str string to be trimmed
- * @param {string} char char to be removed
- * @returns {string} string with first char removed
- */
 function trimStart(str, char = ' ')
 {
     let result = ''
@@ -52,27 +36,10 @@ function trimStart(str, char = ' ')
     return result
 }
 
-/**
- * Returns string with last char removed
- * @param {string} str string to be trimmed
- * @param {string} char char to be removed
- * @returns {string} string with last char removed
- */
 const trimEnd = (str, char = ' ') => reverse(trimStart(reverse(str), char))
 
-/**
- * Returns string with first and last char removed
- * @param {string} str string to be trimmed
- * @param {string} char char to be removed
- * @returns {string} string with first and last char removed
- */
 const trim = (str, char = '') => trimEnd(trimStart(str, char), char)
 
-/**
- * Returns a generator which iterates over the given middleware
- * @param {Array<Function|Array<Function>>} middleware middleware to be iterated over
- * @returns {Promise<Generator>} generator which iterates over the given middleware
- */
 async function* createMiddlewareGenerator(middleware) {
     let finished = false
     const next = () => {
@@ -95,11 +62,6 @@ async function* createMiddlewareGenerator(middleware) {
     }
 }
 
-/**
- * Adds next parameter to the given middleware
- * @param {Array<Function|Array<Function>>} middleware middleware to be added next parameter
- * @returns {Array<Function|Array<Function>>} middleware with next parameter
- */
 function applyNext(middleware) {
     if (Array.isArray(middleware)) {
         return middleware.map(applyNext)
@@ -108,12 +70,6 @@ function applyNext(middleware) {
     }
 }
 
-/**
- * Sends a response with the given status code and body
- * @param {Response} response response to be sent
- * @param {number} statusCode status code to be sent
- * @param {any} body body to be sent
- */
 function sendResponse(response, body, status = 200) {
     let json
     try {
@@ -132,11 +88,6 @@ function sendResponse(response, body, status = 200) {
     response.end(json)
 }
 
-/**
- * Returns the data of the given request
- * @param {IncomingMessage} request request to be read
- * @returns {Promise<Buffer>} data of the given request
- */
 function readData(request) {
     return new Promise((resolve, reject) => {
         const data = []
@@ -152,6 +103,23 @@ function readData(request) {
     })
 }
 
+/**
+ * Parse query string to object
+ */
+function parseQuery(query) {
+    if (!query) {
+        return {}
+    }
+    const params = query.split('&')
+    const result = {}
+    params.forEach(param => {
+        const [key, value] = param.split('=')
+        result[key] = value
+    })
+    return result
+}
+
+
 module.exports = {
     once,
     reverse,
@@ -161,4 +129,6 @@ module.exports = {
     createMiddlewareGenerator,
     applyNext,
     sendResponse,
+    readData,
+    parseQuery,
 }
