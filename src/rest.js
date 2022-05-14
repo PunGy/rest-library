@@ -8,7 +8,7 @@ class RestLib {
     /**
      * The array of middleware, where middleware is a function that takes a context and next caller.
      * It also can be a array of middleware. It means that it's a listener of some request. It will be called iną order.
-     * @type {Array<import('./rest').Middleware>}
+     * @type {Array<import('./utils').Middleware>}
      * @private
      */
     #middleware
@@ -16,7 +16,7 @@ class RestLib {
     /**
      * Map of listeners, where key is method and value is the Map, where key is the path and value is the listener.
      * Actually an array of listeners, chain of middleware. It would be used in the middleware array
-     * @type {Map<string, Map<string, Array<import('./rest').Listener>>>}
+     * @type {Map<string, Map<string, Array<import('./utils').Listener>>>}
     */
     #listeners
 
@@ -71,7 +71,7 @@ class RestLib {
      * Registers a listeners on requesting specific method and path.
      * @param {string} method The method to listen on.
      * @param {string} path The path to listen on.
-     * @param {Array<Function>} listeners The listeners to add.
+     * @param {Array<import('./utils').Listener>} listeners The listeners to add.
      * @returns {RestLib} The instance.
      * @private
      * @throws {Error} If the method is not supported.
@@ -165,7 +165,7 @@ class RestLib {
      * Registers a listener for a specific method and path.
      * @param {string} method The method.
      * @param {string} path The path.
-     * @param {Array<Function>} listeners The listeners.
+     * @param {Array<import('./utils').Listener>} listeners The listeners.
      * @private
      */
     #registerListener(method, path, listeners) {
@@ -179,7 +179,7 @@ class RestLib {
 
     /**
      * Registers a middleware.
-     * @param {Function|Array<Function>} middleware The middleware to register.
+     * @param {import('./utils').Middleware} middleware The middleware to register.
      */
     #registerMiddleware(middleware) {
         this.#middleware.push(middleware)

@@ -39,11 +39,6 @@ export function trimEnd(str: string, char?: string): string;
 export function trim(str: string, char?: string): string;
 
 /**
- * Listener of the request
- */
-export type Listener = (ctx: Context, next: NextFn) => void;
-
-/**
  * Returns a generator which iterates over the given middleware
  * @param middleware middleware to be iterated over
  * @returns generator which iterates over the given middleware

@@ -3,6 +3,11 @@ import { IncomingMessage, ServerResponse } from 'http';
 export type NextFn = () => void
 
 /**
+ * Listener of the request
+ */
+export type Listener = (ctx: Context, next: NextFn) => void;
+
+/**
  * In case if middleware is an array of listeners, it will be executed in sequence
  */
 export type Middleware = Listener | Array<Listener>
