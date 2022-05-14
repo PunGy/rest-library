@@ -1,7 +1,7 @@
 {
   "name": "rest-library",
-  "version": "0.0.5",
-  "main": "rest.js",
+  "version": "0.0.7",
+  "main": "src/rest.js",
   "repository": "https://github.com/PunGy/rest-library.git",
   "author": "Maxim Iakovlev <max.yakovlev555@gmail.com>",
   "description": "Rest library for node.js",
@@ -13,6 +13,10 @@
     "server"
   ],
   "license": "MIT",
+  "exports": {
+    ".": "./src/rest.js",
+    "./*": "./src/*"
+  },
   "files": [
     "src/**/*",
     "package.json"
