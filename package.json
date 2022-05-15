@@ -1,6 +1,6 @@
 {
   "name": "rest-library",
-  "version": "0.0.13",
+  "version": "0.0.17",
   "main": "rest.js",
   "repository": "https://github.com/PunGy/rest-library.git",
   "author": "Maxim Iakovlev <max.yakovlev555@gmail.com>",
@@ -22,10 +22,10 @@
     "utils.d.ts",
     "package.json"
   ],
-  "types": "rest.d.ts",
   "scripts": {
-    "publish": "node ./scripts/publish.js"
+    "publish-npm": "cp src/* . && npm publish && ls src | xargs rm"
   },
+  "types": "rest.d.ts",
   "engines": {
     "node": ">=14.19.2"
   }
