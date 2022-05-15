@@ -32,6 +32,13 @@ app.get('/list', (ctx, next) => {
     ctx.response.send({ data: ctx.response.list })
     next()
 })
+
+app.get('/list/:id', (ctx, next) => {
+    console.log(ctx.request.query, ctx.request.queryParams)
+    ctx.response.send({ data: list[ctx.request.params.id] })
+    next()
+})
+
 app.post('/list', onlyAuthorizedMiddleware, (ctx, next) => {
     list.push(ctx.request.body.data)
     ctx.response.send({ data: list })

@@ -1,4 +1,5 @@
 import { ServerResponse } from 'http';
+import { Middleware } from './utils';
 
 /**
  * Returns the function which would be called only once and then persist the result

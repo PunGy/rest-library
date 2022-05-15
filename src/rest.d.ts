@@ -10,6 +10,12 @@ declare class RestLib {
      * @param callback The callback to call when the server is started.
      */
     listen(port: number, callback: Function): RestLib;
+
+    /**
+     * Set error handler, which will be called when an unhandled error occurs.
+     * @param handler The error handler.
+     */
+    setErrorHandler(handler: (ctx: Context, error: Error) => void): RestLib;
     
     /**
      * Registers a middleware which will be called for all requests.

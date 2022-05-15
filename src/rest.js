@@ -27,6 +27,11 @@ class RestLib {
      */
     #server
 
+    /**
+     * Optional function to be called when application falls with unhandled error.
+     */
+    #errorHandler
+
     constructor() {
         this.#server = http.createServer(this.#handleRequest.bind(this))
         this.#middleware = []
@@ -67,6 +72,10 @@ class RestLib {
         return this.#registerMethod('PATCH', path, listeners)
     }
 
+    setErrorHandler(handler) {
+        this.#errorHandler = handler
+    }
+
     /**
      * Registers a listeners on requesting specific method and path.
      * @param {string} method The method to listen on.
@@ -76,7 +85,7 @@ class RestLib {
      * @private
      * @throws {Error} If the method is not supported.
      */
-    #registerMethod(method, path, ...listeners) {
+    #registerMethod(method, path, listeners) {
         if (!this.#listeners.has(method)) {
             throw new Error(`Method ${method} is not supported.`)
         }
@@ -99,7 +108,7 @@ class RestLib {
 
         response.send = helpers.sendResponse.bind(this, response)
         request.query = query
-        request.queryParams = query ?? helpers.parseQuery(query)
+        request.queryParams = query && helpers.parseQuery(query)
 
         const context = {
             request,
@@ -126,6 +135,7 @@ class RestLib {
 
                     if (entry.startsWith(':')) {
                         params[entry.substring(1)] = pathEntries[index]
+                        return true
                     } else {
                         return entry === pathEntries[index]
                     }
@@ -151,7 +161,17 @@ class RestLib {
                 const middlewareGenerator = helpers.createMiddlewareGenerator(middleware)
 
                 for await (const fn of middlewareGenerator) {
-                    await fn(context)
+                    try {
+                        await fn(context)
+                    } catch (error) {
+                        if (this.#errorHandler) {
+                            this.#errorHandler(context, error)
+                        } else {
+                            response.statusCode = 500
+                            response.end(`{ "error": "${error.message}" }`)
+                        }
+                        return
+                    }
                 }
             }
         }

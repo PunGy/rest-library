@@ -55,6 +55,7 @@ async function* createMiddlewareGenerator(middleware) {
             if (res instanceof Promise) {
                 await res
             }
+
             if (finished) {
                 return
             }
