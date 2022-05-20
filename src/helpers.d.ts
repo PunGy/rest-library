@@ -2,13 +2,6 @@ import { ServerResponse } from 'http';
 import { Middleware } from './utils';
 
 /**
- * Returns the function which would be called only once and then persist the result
- * @param fn function to be called only once
- * @returns function which would be called only once and then persist the result
- */
-export function once(fn: Function): Function;
-
-/**
  * Returns reversed string
  * @param str string to be reversed
  * @returns reversed string

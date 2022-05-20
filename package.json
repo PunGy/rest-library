@@ -23,10 +23,16 @@
     "package.json"
   ],
   "scripts": {
-    "publish-npm": "cp src/* . && npm publish && ls src | xargs rm"
+    "publish-npm": "cp src/* . && npm publish && ls src | xargs rm",
+    "build:docs": "typedoc ./src/rest.d.ts ./src/utils.d.ts"
   },
   "types": "rest.d.ts",
   "engines": {
     "node": ">=14.19.2"
+  },
+  "devDependencies": {
+    "@types/node": "^17.0.35",
+    "typedoc": "^0.22.15",
+    "typescript": "^4.6.4"
   }
 }

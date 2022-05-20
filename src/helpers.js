@@ -1,15 +1,3 @@
-function once(fn) {
-    let called = false;
-    let result;
-    return function (...args) {
-        if (!called) {
-            result = fn.apply(this, args);
-            called = true;
-        }
-        return result;
-    }
-}
-
 function reverse(str)
 {
     let result = ''
@@ -40,7 +28,7 @@ const trimEnd = (str, char = ' ') => reverse(trimStart(reverse(str), char))
 
 const trim = (str, char = '') => trimEnd(trimStart(str, char), char)
 
-async function* createMiddlewareGenerator(middleware) {
+function* createMiddlewareGenerator(middleware) {
     let finished = false
     const next = () => {
         finished = false
@@ -48,13 +36,17 @@ async function* createMiddlewareGenerator(middleware) {
 
     for (const fn of middleware) {
         if (Array.isArray(fn)) {
-            yield* await createMiddlewareGenerator(fn)
+            for (const _fn of fn) {
+                finished = true
+                yield _fn(next)
+
+                if (finished) {
+                    return
+                }
+            }
         } else {
             finished = true
-            const res = yield fn(next)
-            if (res instanceof Promise) {
-                await res
-            }
+            yield fn(next)
 
             if (finished) {
                 return
@@ -122,7 +114,6 @@ function parseQuery(query) {
 
 
 module.exports = {
-    once,
     reverse,
     trimStart,
     trimEnd,

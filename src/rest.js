@@ -32,6 +32,11 @@ class RestLib {
      */
     #errorHandler
 
+    /**
+     * Optional function to be called when appropriate listener is not found.
+     */
+    #notFoundHandler
+
     constructor() {
         this.#server = http.createServer(this.#handleRequest.bind(this))
         this.#middleware = []
@@ -71,9 +76,21 @@ class RestLib {
     patch(path, ...listeners) {
         return this.#registerMethod('PATCH', path, listeners)
     }
+    all(path, ...listeners) {
+        for (const method of this.#listeners.keys()) {
+            this.#registerListener(method, path, listeners)
+        }
+        this.#registerMiddleware(listeners)
 
-    setErrorHandler(handler) {
+        return this
+    }
+
+    error(handler) {
         this.#errorHandler = handler
+    }
+
+    notFound(handler) {
+        this.#notFoundHandler = handler
     }
 
     /**
@@ -107,8 +124,8 @@ class RestLib {
         const [path, query] = url.split('?')
 
         response.send = helpers.sendResponse.bind(this, response)
-        request.query = query
-        request.queryParams = query && helpers.parseQuery(query)
+        request.query = query ?? ''
+        request.queryParams = request.query.length > 0 ? helpers.parseQuery(query) : {}
 
         const context = {
             request,
@@ -121,46 +138,54 @@ class RestLib {
 
             // Find the listener for the path
             // If there would be a parameters, it will be added to the context
-            // @type {[string, Array<Function>]}
-            const pathListenersEntry = Array.from(methodListeners.entries()).find(([path]) => {
+            // @type {Array<[string, Array<Function>]>}
+            const pathListenersEntry = Array.from(methodListeners.entries()).filter(([path]) => {
                 const listenerPathEntries = helpers.trim(path, '/').split('/')
-                if (pathEntries.length !== listenerPathEntries.length) {
+
+                /**
+                 * If the path is longer than the listener path, it can't be a match
+                 * But if path includes asterisk, it can be a match
+                 */
+                if (pathEntries.length !== listenerPathEntries.length && !path.includes('*')) {
                     return false
                 }
 
                 let params = {}
 
-                const isOk = listenerPathEntries.every((entry, index) => {
+                const isMatched = listenerPathEntries.every((listenerPathEntry, index) => {
                     if (index === 0) params = {}
+                    const requestPathEntry = pathEntries[index]
 
-                    if (entry.startsWith(':')) {
-                        params[entry.substring(1)] = pathEntries[index]
+                    if (listenerPathEntry.startsWith(':')) {
+                        params[listenerPathEntry.substring(1)] = requestPathEntry
+                        return true
+                    } else if (listenerPathEntry === '*') {
                         return true
                     } else {
-                        return entry === pathEntries[index]
+                        return listenerPathEntry === requestPathEntry
                     }
                 })
-                if (isOk) {
+                if (isMatched) {
                     context.request.params = params
                 }
                 
-                return isOk
+                return isMatched
             })
 
-            if (pathListenersEntry) {
-                // An array of middleware
-                const pathListeners = pathListenersEntry[1]
+            if (pathListenersEntry.length > 0) {
+                // An array of middleware functions
+                const pathListeners = pathListenersEntry.map(entry => entry[1])
 
-                // Left only generic middleware and the current one for the path
+                // Left only generic middleware and matched for the path
                 const middleware = this.#middleware.filter(middleware => {
                     if (Array.isArray(middleware)) {
-                        return middleware === pathListeners
+                        return pathListeners.some(listener => listener === middleware)
                     }
                     return true
                 }).map(helpers.applyNext)
                 const middlewareGenerator = helpers.createMiddlewareGenerator(middleware)
 
-                for await (const fn of middlewareGenerator) {
+                for (const fn of middlewareGenerator) {
                     try {
                         await fn(context)
                     } catch (error) {
@@ -172,6 +197,13 @@ class RestLib {
                         }
                         return
                     }
+                }
+            } else {
+                if (this.#notFoundHandler) {
+                    this.#notFoundHandler(context)
+                } else {
+                    response.statusCode = 404
+                    response.end(`{ "error": "Not found" }`)
                 }
             }
         }

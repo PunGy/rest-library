@@ -1,21 +1,15 @@
-export = RestLib;
+import { Context, Listener } from './utils'
 
 /**
  * Class for handling REST http requests
  */
-declare class RestLib {
+export declare class RestLib {
     /**
      * Starts the server.
      * @param port The port to listen on.
      * @param callback The callback to call when the server is started.
      */
     listen(port: number, callback: Function): RestLib;
-
-    /**
-     * Set error handler, which will be called when an unhandled error occurs.
-     * @param handler The error handler.
-     */
-    setErrorHandler(handler: (ctx: Context, error: Error) => void): RestLib;
     
     /**
      * Registers a middleware which will be called for all requests.
@@ -57,4 +51,16 @@ declare class RestLib {
      * @param listeners Listeners to be called
      */
     patch(path: string, ...listeners: Array<Listener>): RestLib;
+
+    /**
+     * Set error handler, which will be called when an unhandled error occurs.
+     * @param handler The error handler.
+     */
+    error(handler: (ctx: Context, error: Error) => void): RestLib;
+
+    /**
+     * Set handler for 404 errors
+     * @param handler The handler of 404 error
+     */
+    notFound(handler: (ctx: Context) => void): RestLib;
 }

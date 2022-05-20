@@ -17,13 +17,12 @@ export type Middleware = Listener | Array<Listener>
  */
 export type Context = {
     request: IncomingMessage & {
-        body?: any;
-        params?: Record<string, string>;
-        query?: string;
-        queryParams?: Record<string, string>;
+        params: Record<string, string>;
+        query: string;
+        queryParams: Record<string, string>;
     },
     response: ServerResponse & {
-        send: (body: any, status?: number) => void;
+        send: (body: any, status?: number = 200) => void;
     },
 }
 
