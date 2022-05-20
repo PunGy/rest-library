@@ -23,6 +23,8 @@ npm install rest-library
 
 You can see full example in [example.mjs](https://github.com/PunGy/rest-library/blob/main/example.mjs) file
 
+All available methods of RestLibrary you can see here <https://pungy.github.io/rest-library/classes/rest.RestLib.html>
+
 Here's another one. Checking is there are a file on the server
 
 ```js
@@ -64,7 +66,27 @@ app.listen(3000, () => console.log('Server started on port 3000'))
 
 ## API
 
-You can see full documentation on this page: github.com
+You can see full documentation on this page: <https://pungy.github.io/rest-library/>
+
+## Utils
+
+This library also contain `utils` module, from where you currently can pick the [body parser middleware](https://pungy.github.io/rest-library/modules/utils.html#parseBodyMiddleware). For now it's only works with such Content-Types as `application/json` and `plain/text`.
+
+Here are the full list of functions and types <https://pungy.github.io/rest-library/modules/utils.html>
+
+```js
+const rest = require('rest-library')
+const { parseBodyMiddleware } = require('rest-library/utils.js')
+const app = new rest()
+
+app.use(parseBodyMiddleware)
+
+app.post('/post', (ctx) => {
+    ctx.response.send(ctx.request.body)
+})
+
+app.listen(3000)
+```
 
 ### Creating a listener
 
@@ -138,5 +160,5 @@ Listeners would be called in the order as they was assigned, and the last one wo
 
 You also can set custom error and 404 handler via `app.error` and `app.notFound`
 
-* [app.error]() - function which is called when during the execution of listeners an unhandled error was occurred.
-* [app.notFound]() - function which is called when the request url path was not matched with any of registered listeners
+* [app.error](https://pungy.github.io/rest-library/classes/rest.RestLib.html#error) - sets error handler which is called when during the execution of listeners an unhandled error was occurred.
+* [app.notFound](https://pungy.github.io/rest-library/classes/rest.RestLib.html#notFound) - sets 404 handler which is called when the request url path was not matched with any of registered listeners
