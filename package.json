@@ -1,6 +1,6 @@
 {
   "name": "rest-library",
-  "version": "0.0.17",
+  "version": "1.0.0",
   "main": "rest.js",
   "repository": "https://github.com/PunGy/rest-library.git",
   "author": "Maxim Iakovlev <max.yakovlev555@gmail.com>",
