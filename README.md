@@ -48,7 +48,7 @@ app.get('/', (ctx) => {
 /**
  * Assigning on method GET with url /file with parameter :file two listeners
  * First one is async and checks is there are a file on the server. Then writes it in the context
- * Second one is sending response to the client message, is file exists or not, depends on parameter from the context
+ * Second one is sending to the client a message is file exists or not, depends on parameter from the context
  */
 app.get(
     '/file/:file', 
@@ -139,7 +139,7 @@ app.get('/file/*/:file1/:file2/min')
 
 ### Context
 
-The context argument in the listener by default contains two parameters:
+The [context](https://pungy.github.io/rest-library/modules/utils.html#Context) argument in the listener by default contains two parameters:
 
 * request - is the base IncomingMessage with few   additional parameter
   * **query** - query(what is after `?` in the url) parameters string. By default is empty string
