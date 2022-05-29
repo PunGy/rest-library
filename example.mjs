@@ -66,6 +66,12 @@ app.post('/list', (ctx, next) => {
     console.log(`The element ${ctx.request.body.data} was added to the list`)
 })
 
+app.put('/list', onlyAuthorizedMiddleware, (ctx, next) => {
+    list.push(ctx.request.body.data)
+    ctx.response.send({ data: list })
+    next()
+})
+
 app.listen(3000, () => {
     console.log('Server started on port 3000')
 })
