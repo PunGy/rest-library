@@ -112,6 +112,24 @@ class RestLib {
         return this
     }
 
+    async #iterateOverMiddleware(ctx, middleware) {
+        const middlewareGenerator = helpers.createMiddlewareGenerator(middleware.map(helpers.applyNext))
+
+        for (const fn of middlewareGenerator) {
+            try {
+                await fn(ctx)
+            } catch (error) {
+                if (this.#errorHandler) {
+                    this.#errorHandler(ctx, error)
+                } else {
+                    ctx.response.statusCode = 500
+                    ctx.response.end(`{ "error": "${error.message}" }`)
+                }
+                return
+            }
+        }
+    }
+
     /**
      * Handles a request.
      * @param {http.IncomingMessage} request The request.
@@ -182,22 +200,9 @@ class RestLib {
                         return pathListeners.some(listener => listener === middleware)
                     }
                     return true
-                }).map(helpers.applyNext)
-                const middlewareGenerator = helpers.createMiddlewareGenerator(middleware)
-
-                for (const fn of middlewareGenerator) {
-                    try {
-                        await fn(context)
-                    } catch (error) {
-                        if (this.#errorHandler) {
-                            this.#errorHandler(context, error)
-                        } else {
-                            response.statusCode = 500
-                            response.end(`{ "error": "${error.message}" }`)
-                        }
-                        return
-                    }
-                }
+                })
+                
+                await this.#iterateOverMiddleware(context, middleware)
             } else {
                 if (this.#notFoundHandler) {
                     this.#notFoundHandler(context)
@@ -206,6 +211,14 @@ class RestLib {
                     response.end(`{ "error": "Not found" }`)
                 }
             }
+        } else if (method === 'OPTIONS' || method === 'HEAD') {
+            response.statusCode = 200
+            const middleware = this.#middleware
+                .filter(middleware => !Array.isArray(middleware))
+            
+            await this.#iterateOverMiddleware(context, middleware)
+            
+            response.end()
         }
 
         if (!response.writableEnded) {
