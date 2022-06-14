@@ -5,11 +5,13 @@ async function parseBodyMiddleware(ctx, next) {
     
     if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') { 
         const contentType = req.headers['Content-Type'] ?? 'plain/text'
-        const allowedContentTypes = ['application/json', 'plain/text']
 
-        if (allowedContentTypes.includes(contentType)) {
+        if (contentType === 'application/json') {
             const data = await readData(req)
             ctx.request.body = JSON.parse(data.toString())
+        } else if (contentType === 'plain/text') {
+            const data = await readData(req)
+            ctx.request.body = data.toString()
         }
     }
     next()

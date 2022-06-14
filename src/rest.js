@@ -220,10 +220,6 @@ class RestLib {
             
             response.end()
         }
-
-        if (!response.writableEnded) {
-            response.end()
-        }
     }
 
     /**
