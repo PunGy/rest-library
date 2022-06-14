@@ -4,7 +4,7 @@ async function parseBodyMiddleware(ctx, next) {
     const req = ctx.request
     
     if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') { 
-        const contentType = req.headers['Content-Type'] ?? 'plain/text'
+        const contentType = req.headers['content-type'] ?? 'plain/text'
 
         if (contentType === 'application/json') {
             const data = await readData(req)
