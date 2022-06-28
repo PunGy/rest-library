@@ -1,6 +1,6 @@
-const { readData } = require('./helpers')
+import { readData } from './helpers.js'
 
-async function parseBodyMiddleware(ctx, next) {
+export async function parseBodyMiddleware(ctx, next) {
     const req = ctx.request
     
     if (req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH') { 
@@ -15,8 +15,4 @@ async function parseBodyMiddleware(ctx, next) {
         }
     }
     next()
-}
-
-module.exports = {
-    parseBodyMiddleware,
 }

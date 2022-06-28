@@ -1,9 +1,12 @@
 import { Context, Listener } from './utils'
+import { ServerOptions } from 'node:https'
 
 /**
  * Class for handling REST http requests
  */
 export declare class RestLib {
+    constructor(options?: { server?: ServerOptions })
+
     /**
      * Starts the server.
      * @param port The port to listen on.

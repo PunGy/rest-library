@@ -1,4 +1,7 @@
-function reverse(str)
+import { stat } from 'node:fs/promises'
+import { fileTypeFromFile } from 'file-type'
+
+export function reverse(str)
 {
     let result = ''
 
@@ -8,7 +11,7 @@ function reverse(str)
     return result
 }
 
-function trimStart(str, char = ' ')
+export function trimStart(str, char = ' ')
 {
     let result = ''
 
@@ -24,11 +27,11 @@ function trimStart(str, char = ' ')
     return result
 }
 
-const trimEnd = (str, char = ' ') => reverse(trimStart(reverse(str), char))
+export const trimEnd = (str, char = ' ') => reverse(trimStart(reverse(str), char))
 
-const trim = (str, char = '') => trimEnd(trimStart(str, char), char)
+export const trim = (str, char = '') => trimEnd(trimStart(str, char), char)
 
-function* createMiddlewareGenerator(middleware) {
+export function* createMiddlewareGenerator(middleware) {
     let finished = false
     const next = () => {
         finished = false
@@ -55,7 +58,7 @@ function* createMiddlewareGenerator(middleware) {
     }
 }
 
-function applyNext(middleware) {
+export function applyNext(middleware) {
     if (Array.isArray(middleware)) {
         return middleware.map(applyNext)
     } else {
@@ -63,7 +66,7 @@ function applyNext(middleware) {
     }
 }
 
-function sendResponse(response, body, status = 200) {
+export function sendJson(response, body, status = 200) {
     let json
     try {
         json = JSON.stringify(body)
@@ -81,7 +84,25 @@ function sendResponse(response, body, status = 200) {
     response.end(json)
 }
 
-function readData(request) {
+export async function sendFile(response, path) {
+    const imageStats = await stat(path).catch(() => null)
+
+    if (imageStats) {
+        const fileType = await fileTypeFromFile(path)
+        console.log(fileType)
+        response.writeHead(200, {
+            'Content-Type': fileType.mime,
+            'Content-Size': imageStats.size,
+        })
+        const readImage = fs.createReadStream(path)
+
+        readImage.pipe(response)
+    } else {
+        response.send({ error: 'Not found such file' }, 404)
+    }
+}
+
+export function readData(request) {
     return new Promise((resolve, reject) => {
         const data = []
         request.on('data', (chunk) => {
@@ -99,7 +120,7 @@ function readData(request) {
 /**
  * Parse query string to object
  */
-function parseQuery(query) {
+export function parseQuery(query) {
     if (!query) {
         return {}
     }
@@ -110,17 +131,4 @@ function parseQuery(query) {
         result[key] = value
     })
     return result
-}
-
-
-module.exports = {
-    reverse,
-    trimStart,
-    trimEnd,
-    trim,
-    createMiddlewareGenerator,
-    applyNext,
-    sendResponse,
-    readData,
-    parseQuery,
 }
