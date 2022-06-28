@@ -15,8 +15,6 @@
   ],
   "license": "MIT",
   "files": [
-    "helpers.js",
-    "helpers.d.ts",
     "rest.js",
     "rest.d.ts",
     "utils.js",
@@ -24,7 +22,7 @@
     "package.json"
   ],
   "scripts": {
-    "publish-npm": "cp src/* . && npm publish && ls src | xargs rm",
+    "publish-npm": "bash publish.sh",
     "build:docs": "typedoc ./src/rest.d.ts ./src/utils.d.ts"
   },
   "types": "rest.d.ts",
