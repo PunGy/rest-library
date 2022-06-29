@@ -1,4 +1,5 @@
 import { stat } from 'node:fs/promises'
+import { createReadStream } from 'node:fs'
 import { fileTypeFromFile } from 'file-type'
 
 export function reverse(str)
@@ -89,12 +90,11 @@ export async function sendFile(response, path) {
 
     if (imageStats) {
         const fileType = await fileTypeFromFile(path)
-        console.log(fileType)
         response.writeHead(200, {
-            'Content-Type': fileType.mime,
+            'Content-Type': fileType ? fileType.mime : 'text/plain',
             'Content-Size': imageStats.size,
         })
-        const readImage = fs.createReadStream(path)
+        const readImage = createReadStream(path)
 
         readImage.pipe(response)
     } else {

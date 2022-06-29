@@ -41,7 +41,7 @@ app.get('/', (ctx) => {
 
 app.get('/file/:file', (ctx) => {
     const { file } = ctx.request.params
-    ctx.response.sendFile(ROOT_DIR + file)
+    ctx.response.sendFile(`${ROOT_DIR}/${file}`)
 })
 
 const list = []
