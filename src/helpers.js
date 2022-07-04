@@ -98,20 +98,22 @@ export function sendFile(response, path) {
             })
 
             function firstChunkReader(chunk) {
-                    fileTypeFromBuffer(chunk)
-                        .then(fileType => {
-                            response.writeHead(200, {
-                                'Content-Type': fileType ? fileType.mime : 'text/plain',
-                                'Content-Size': fileStats.size,
-                            })
-
-                            readFile.on('data', (chunk) => {
-                                response.write(chunk)
-                            })
-
-                            response.write(chunk)
-                            
+                fileTypeFromBuffer(chunk)
+                    .then(fileType => {
+                        response.writeHead(200, {
+                            'Content-Type': fileType ? fileType.mime : 'text/plain',
+                            'Content-Size': fileStats.size,
                         })
+
+                        readFile.on('data', (chunk) => {
+                            response.write(chunk)
+                        })
+
+                        response.write(chunk)
+                        
+                    })
+                
+                console.log('reading first chunk')
                 readFile.removeListener('data', firstChunkReader)
             }
 
