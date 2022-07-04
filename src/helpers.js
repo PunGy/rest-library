@@ -1,6 +1,6 @@
 import { stat } from 'node:fs/promises'
 import { createReadStream } from 'node:fs'
-import { fileTypeFromFile } from 'file-type'
+import { fileTypeFromBuffer } from 'file-type'
 
 export function reverse(str)
 {
@@ -85,21 +85,48 @@ export function sendJson(response, body, status = 200) {
     response.end(json)
 }
 
-export async function sendFile(response, path) {
-    const imageStats = await stat(path).catch(() => null)
+export function sendFile(response, path) {
+    return new Promise(async (finish, reject) => {
+        const fileStats = await stat(path).catch(() => null)
 
-    if (imageStats) {
-        const fileType = await fileTypeFromFile(path)
-        response.writeHead(200, {
-            'Content-Type': fileType ? fileType.mime : 'text/plain',
-            'Content-Size': imageStats.size,
-        })
-        const readImage = createReadStream(path)
+        if (fileStats) {
+            const readFile = createReadStream(path)
+            
+            readFile.on('error', (error) => {
+                reject(error)
+                response.send({ error }, 500)
+            })
 
-        readImage.pipe(response)
-    } else {
-        response.send({ error: 'Not found such file' }, 404)
-    }
+            function firstChunkReader(chunk) {
+                    fileTypeFromBuffer(chunk)
+                        .then(fileType => {
+                            response.writeHead(200, {
+                                'Content-Type': fileType ? fileType.mime : 'text/plain',
+                                'Content-Size': fileStats.size,
+                            })
+
+                            readFile.on('data', (chunk) => {
+                                response.write(chunk)
+                            })
+
+                            response.write(chunk)
+                            
+                        })
+                readFile.removeListener('data', firstChunkReader)
+            }
+
+            readFile.on('data', firstChunkReader)
+            readFile.on('end', () => {
+                response.end()
+            })
+
+            response.on('finish', () => {
+                finish()
+            })
+        } else {
+            response.send({ error: 'Not found such file' }, 404)
+        }
+    })
 }
 
 export function readData(request) {
