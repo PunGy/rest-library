@@ -53,4 +53,11 @@ export function applyNext(middleware: Array<Middleware>): Array<Middleware>;
  * @param statusCode status code to be sent
  * @param body body to be sent
  */
-export function sendResponse(response: ServerResponse, body: any, status?: number): void;
+export function sendJson(response: ServerResponse, body: any, status?: number): void;
+
+/**
+ * Sends a file from the path string
+ * @param response response to be sent
+ * @param path is the path (desirably absolute) to the file
+ */
+ export function sendFile(response: ServerResponse, path: string): void;

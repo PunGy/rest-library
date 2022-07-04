@@ -9,6 +9,8 @@ const onlyAuthorizedMiddleware = (ctx, next) => {
     }
 }
 
+const ROOT_DIR = process.cwd()
+
 const app = new RestLib()
 
 app.use(parseBodyMiddleware)
@@ -35,6 +37,11 @@ app.all('/list/*', (ctx, next) => {
 
 app.get('/', (ctx) => {
     ctx.response.send({ message: 'Hello World' })
+})
+
+app.get('/file/:file', (ctx) => {
+    const { file } = ctx.request.params
+    ctx.response.sendFile(`${ROOT_DIR}/${file}`)
 })
 
 const list = []

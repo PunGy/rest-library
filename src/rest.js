@@ -1,10 +1,11 @@
-const http = require('http')
-const helpers = require('./helpers')
+import http from 'node:http'
+import https from 'node:https'
+import * as helpers from './helpers.js'
 
 /**
  * Class for handling REST http requests
  */
-class RestLib {
+export default class RestLib {
     /**
      * The array of middleware, where middleware is a function that takes a context and next caller.
      * It also can be a array of middleware. It means that it's a listener of some request. It will be called iną order.
@@ -37,8 +38,14 @@ class RestLib {
      */
     #notFoundHandler
 
-    constructor() {
-        this.#server = http.createServer(this.#handleRequest.bind(this))
+    constructor(options) {
+        const server = options?.server
+        if (server && 'key' in server && 'cert' in server) {
+            this.#server = https.createServer(ssl, this.#handleRequest.bind(this))
+        } else {
+            this.#server = http.createServer(this.#handleRequest.bind(this))
+        }
+
         this.#middleware = []
         this.#listeners = new Map([
             ['GET', new Map()],
@@ -141,7 +148,8 @@ class RestLib {
 
         const [path, query] = url.split('?')
 
-        response.send = helpers.sendResponse.bind(this, response)
+        response.send = helpers.sendJson.bind(this, response)
+        response.sendFile = helpers.sendFile.bind(this, response)
         request.query = query ?? ''
         request.queryParams = request.query.length > 0 ? helpers.parseQuery(query) : {}
 
@@ -246,5 +254,3 @@ class RestLib {
         this.#middleware.push(middleware)
     }
 }
-
-module.exports = RestLib

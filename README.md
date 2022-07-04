@@ -25,14 +25,16 @@ You can see full example in [example.mjs](https://github.com/PunGy/rest-library/
 
 All available methods of RestLibrary you can see here <https://pungy.github.io/rest-library/classes/rest.RestLib.html>
 
-Here's another one. Checking is there are a file on the server
+Here's another one. Checking is there are a file on the server. You can pass server options in the parameters to constructor.
 
 ```js
-const rest = require('rest-library')
-const { access } = require('node:fs/promises')
+import Rest from 'rest-library'
+import { access } from 'node:fs/promises'
 
 // Creating new instance of rest library
-const app = new rest()
+const app = new Rest(
+    // { server: { cert: fs.readFileSync('cert'), key: fs.readFileSync('key') } }
+) // You can put options for server. If in server cert and key are persist, server will be started as https
 
 // Assigning middleware which would be called at every request
 app.use((ctx, next) => { 
@@ -75,9 +77,9 @@ This library also contain `utils` module, from where you currently can pick the 
 Here are the full list of functions and types <https://pungy.github.io/rest-library/modules/utils.html>
 
 ```js
-const rest = require('rest-library')
-const { parseBodyMiddleware } = require('rest-library/utils.js')
-const app = new rest()
+import Rest from 'rest-library'
+import { parseBodyMiddleware } from 'rest-library/utils.js'
+const app = new Rest()
 
 app.use(parseBodyMiddleware)
 
