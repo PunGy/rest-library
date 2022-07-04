@@ -110,10 +110,8 @@ export function sendFile(response, path) {
                         })
 
                         response.write(chunk)
-                        
                     })
                 
-                console.log('reading first chunk')
                 readFile.removeListener('data', firstChunkReader)
             }
 
