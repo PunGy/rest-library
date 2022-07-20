@@ -23,7 +23,10 @@
   ],
   "scripts": {
     "publish-npm": "bash publish.sh",
-    "build:docs": "typedoc ./src/rest.d.ts ./src/utils.d.ts"
+    "build:docs": "typedoc ./src/rest.d.ts ./src/utils.d.ts",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "type-check": "tsc"
   },
   "types": "rest.d.ts",
   "engines": {
@@ -31,6 +34,9 @@
   },
   "devDependencies": {
     "@types/node": "^17.0.35",
+    "@typescript-eslint/eslint-plugin": "^5.30.7",
+    "@typescript-eslint/parser": "^5.30.7",
+    "eslint": "^8.20.0",
     "typedoc": "^0.22.15",
     "typescript": "^4.6.4"
   },

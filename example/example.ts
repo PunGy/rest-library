@@ -1,7 +1,9 @@
-import RestLib from './src/rest.js'
-import { parseBodyMiddleware } from './src/utils.js'
+import RestLib from '../src/rest.js'
+import { parseBodyMiddleware, Context, NextFn, BodyJSONParameter } from '../src/utils.js'
 
-const onlyAuthorizedMiddleware = (ctx, next) => {
+type AppContext = Context<BodyJSONParameter>
+
+const onlyAuthorizedMiddleware = (ctx: Context<{ user: string; }>, next: NextFn) => {
     if (ctx.user) {
         next()
     } else {
@@ -61,7 +63,7 @@ app.get('/list/:id', (ctx) => {
 
 /**
  * Example of request:
- * 
+ *
  * URL: http://localhost:3000/list?name="John"
  * BODY: { "data": 10 }
  */

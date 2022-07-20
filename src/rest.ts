@@ -1,6 +1,13 @@
-import http from 'node:http'
-import https from 'node:https'
+import http, { IncomingMessage, Server as HttpServer, ServerResponse } from 'node:http'
+import https, { Server as HttpsServer, ServerOptions } from 'node:https'
 import * as helpers from './helpers.js'
+import { Context, Listener, Middleware, RestRequest, RestResponse } from './utils.js'
+
+export interface RestLibOptions {
+    server: ServerOptions;
+}
+
+export type ErrorHandler = (ctx: Context, error: any) => void;
 
 /**
  * Class for handling REST http requests
@@ -9,39 +16,37 @@ export default class RestLib {
     /**
      * The array of middleware, where middleware is a function that takes a context and next caller.
      * It also can be a array of middleware. It means that it's a listener of some request. It will be called iną order.
-     * @type {Array<import('./utils').Middleware>}
      * @private
      */
-    #middleware
+    #middleware: Array<Middleware>
 
     /**
      * Map of listeners, where key is method and value is the Map, where key is the path and value is the listener.
      * Actually an array of listeners, chain of middleware. It would be used in the middleware array
-     * @type {Map<string, Map<string, Array<import('./utils').Listener>>>}
+     * @private
     */
-    #listeners
+    #listeners: Map<string, Map<string, Array<Listener>>>
 
     /**
      * The server instance.
-     * @type {http.Server}
      * @private
      */
-    #server
+    #server: HttpServer | HttpsServer
 
     /**
      * Optional function to be called when application falls with unhandled error.
      */
-    #errorHandler
+    #errorHandler?: ErrorHandler
 
     /**
      * Optional function to be called when appropriate listener is not found.
      */
-    #notFoundHandler
+    #notFoundHandler?: ErrorHandler
 
-    constructor(options) {
+    constructor(options: RestLibOptions) {
         const server = options?.server
         if (server && 'key' in server && 'cert' in server) {
-            this.#server = https.createServer(ssl, this.#handleRequest.bind(this))
+            this.#server = https.createServer(server, this.#handleRequest.bind(this))
         } else {
             this.#server = http.createServer(this.#handleRequest.bind(this))
         }
@@ -56,34 +61,73 @@ export default class RestLib {
         ])
     }
 
-    listen(port, callback) {
+    /**
+     * Starts the server.
+     * @param port The port to listen on.
+     * @param callback The callback to call when the server is started.
+     */
+    listen(port: number, callback?: () => void) {
         this.#server.listen(port, callback)
-        
+
         return this
     }
 
-    use(middleware) {
+    /**
+     * Registers a middleware which will be called for all requests.
+     * @param middleware The middleware listener to add for every request.
+     */
+    use(middleware: Middleware) {
         this.#registerMiddleware(middleware)
 
         return this
     }
 
-    get(path, ...listeners) {
+    /**
+     * Register a listeners which will be called for GET request and particular route.
+     * @param path Route path to listen for.
+     * @param listeners Listeners to be called
+     */
+    get(path: string, ...listeners: Array<Listener>) {
         return this.#registerMethod('GET', path, listeners)
     }
-    post(path, ...listeners) {
+    /**
+     * Register a listeners which will be called for POST request and particular route.
+     * @param path Route path to listen for.
+     * @param listeners Listeners to be called
+     */
+    post(path: string, ...listeners: Array<Listener>) {
         return this.#registerMethod('POST', path, listeners)
     }
-    put(path, ...listeners) {
+    /**
+     * Register a listeners which will be called for PUT request and particular route.
+     * @param path Route path to listen for.
+     * @param listeners Listeners to be called
+     */
+    put(path: string, ...listeners: Array<Listener>) {
         return this.#registerMethod('PUT', path, listeners)
     }
-    delete(path, ...listeners) {
+    /**
+     * Register a listeners which will be called for DELETE request and particular route.
+     * @param path Route path to listen for.
+     * @param listeners Listeners to be called
+     */
+    delete(path: string, ...listeners: Array<Listener>) {
         return this.#registerMethod('DELETE', path, listeners)
     }
-    patch(path, ...listeners) {
+    /**
+     * Register a listeners which will be called for PATCH request and particular route.
+     * @param path Route path to listen for.
+     * @param listeners Listeners to be called
+     */
+    patch(path: string, ...listeners: Array<Listener>) {
         return this.#registerMethod('PATCH', path, listeners)
     }
-    all(path, ...listeners) {
+    /**
+     * Register a listeners which will be called for ALL available methods
+     * @param path Route path to listen for.
+     * @param listeners Listeners to be called
+     */
+    all(path: string, ...listeners: Array<Listener>) {
         for (const method of this.#listeners.keys()) {
             this.#registerListener(method, path, listeners)
         }
@@ -92,24 +136,31 @@ export default class RestLib {
         return this
     }
 
-    error(handler) {
+    /**
+     * Set error handler, which will be called when an unhandled error occurs.
+     * @param handler The error handler.
+     */
+    error(handler: (error: any) => void) {
         this.#errorHandler = handler
     }
 
-    notFound(handler) {
+    /**
+     * Set handler for 404 errors
+     * @param handler The handler of 404 error
+     */
+    notFound(handler: (error: any) => void) {
         this.#notFoundHandler = handler
     }
 
     /**
      * Registers a listeners on requesting specific method and path.
-     * @param {string} method The method to listen on.
-     * @param {string} path The path to listen on.
-     * @param {Array<import('./utils').Listener>} listeners The listeners to add.
-     * @returns {RestLib} The instance.
+     * @param method The method to listen on.
+     * @param path The path to listen on.
+     * @param listeners The listeners to add.
      * @private
      * @throws {Error} If the method is not supported.
      */
-    #registerMethod(method, path, listeners) {
+    #registerMethod(method: string, path: string, listeners: Array<Listener>) {
         if (!this.#listeners.has(method)) {
             throw new Error(`Method ${method} is not supported.`)
         }
@@ -119,8 +170,8 @@ export default class RestLib {
         return this
     }
 
-    async #iterateOverMiddleware(ctx, middleware) {
-        const middlewareGenerator = helpers.createMiddlewareGenerator(middleware.map(helpers.applyNext))
+    async #iterateOverMiddleware(ctx: Context, middleware: Array<Middleware>) {
+        const middlewareGenerator = helpers.createMiddlewareGenerator(middleware.map(m => helpers.applyNext(m)))
 
         for (const fn of middlewareGenerator) {
             try {
@@ -129,8 +180,9 @@ export default class RestLib {
                 if (this.#errorHandler) {
                     this.#errorHandler(ctx, error)
                 } else {
+                    const message = error instanceof Error ? error.message : error
                     ctx.response.statusCode = 500
-                    ctx.response.end(`{ "error": "${error.message}" }`)
+                    ctx.response.end(`{ "error": "${message}" }`)
                 }
                 return
             }
@@ -139,27 +191,31 @@ export default class RestLib {
 
     /**
      * Handles a request.
-     * @param {http.IncomingMessage} request The request.
-     * @param {http.ServerResponse} response The response.
+     * @param request The request.
+     * @param response The response.
      * @private
      */
-    async #handleRequest(request, response) {
-        const { method, url } = request
+    async #handleRequest(serverRequest: IncomingMessage, serverResponse: ServerResponse) {
+        const request = serverRequest as RestRequest
+        const response = serverResponse as RestResponse
+        const { method, url } = request as { method: string; url: string; }
 
-        const [path, query] = url.split('?')
+        const [path, query] = url.split('?') as [string, string | undefined]
 
         response.send = helpers.sendJson.bind(this, response)
         response.sendFile = helpers.sendFile.bind(this, response)
         request.query = query ?? ''
         request.queryParams = request.query.length > 0 ? helpers.parseQuery(query) : {}
 
-        const context = {
+        const context: Context = {
             request,
             response,
         }
-        
+
         if (this.#listeners.has(method)) {
-            const methodListeners = this.#listeners.get(method)
+            // We checking on such method existence above
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            const methodListeners = this.#listeners.get(method)!
             const pathEntries = helpers.trim(path, '/').split('/')
 
             // Find the listener for the path
@@ -176,11 +232,14 @@ export default class RestLib {
                     return false
                 }
 
-                let params = {}
+                let params: Record<string, string> = {}
 
                 const isMatched = listenerPathEntries.every((listenerPathEntry, index) => {
                     if (index === 0) params = {}
-                    const requestPathEntry = pathEntries[index]
+
+                    // We checking that pathEntries and listenerPathEntries has same length above, so we can use index with confidence
+                    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                    const requestPathEntry = pathEntries[index]!
 
                     if (listenerPathEntry.startsWith(':')) {
                         params[listenerPathEntry.substring(1)] = requestPathEntry
@@ -194,7 +253,7 @@ export default class RestLib {
                 if (isMatched) {
                     context.request.params = params
                 }
-                
+
                 return isMatched
             })
 
@@ -209,11 +268,11 @@ export default class RestLib {
                     }
                     return true
                 })
-                
+
                 await this.#iterateOverMiddleware(context, middleware)
             } else {
                 if (this.#notFoundHandler) {
-                    this.#notFoundHandler(context)
+                    this.#notFoundHandler(context, new Error('not found'))
                 } else {
                     response.statusCode = 404
                     response.end(`{ "error": "Not found" }`)
@@ -223,9 +282,9 @@ export default class RestLib {
             response.statusCode = 200
             const middleware = this.#middleware
                 .filter(middleware => !Array.isArray(middleware))
-            
+
             await this.#iterateOverMiddleware(context, middleware)
-            
+
             response.end()
         }
     }
@@ -237,10 +296,14 @@ export default class RestLib {
      * @param {Array<import('./utils').Listener>} listeners The listeners.
      * @private
      */
-    #registerListener(method, path, listeners) {
+    #registerListener(method: string, path: string, listeners: Array<Listener>) {
         const methodListeners = this.#listeners.get(method)
+        if (methodListeners == null) {
+            throw new Error(`${method} is not allowed`)
+        }
         if (methodListeners.has(path)) {
-            methodListeners.get(path).push(...listeners)
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            methodListeners.get(path)!.push(...listeners)
         } else {
             methodListeners.set(path, listeners)
         }
@@ -250,7 +313,7 @@ export default class RestLib {
      * Registers a middleware.
      * @param {import('./utils').Middleware} middleware The middleware to register.
      */
-    #registerMiddleware(middleware) {
+    #registerMiddleware(middleware: Middleware) {
         this.#middleware.push(middleware)
     }
 }
