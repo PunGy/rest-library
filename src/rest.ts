@@ -1,7 +1,7 @@
 import http, { IncomingMessage, Server as HttpServer, ServerResponse } from 'node:http'
 import https, { Server as HttpsServer, ServerOptions } from 'node:https'
 import * as helpers from './helpers.js'
-import { Context, Listener, Middleware, RestRequest, RestResponse } from './utils.js'
+import { Context, Listener, Middleware } from './utils.js'
 
 export interface RestLibOptions {
     server: ServerOptions;
@@ -18,7 +18,7 @@ export default class RestLib {
      * It also can be a array of middleware. It means that it's a listener of some request. It will be called iną order.
      * @private
      */
-    #middleware: Array<Middleware>
+    #middleware: Array<Middleware<any>>
 
     /**
      * Map of listeners, where key is method and value is the Map, where key is the path and value is the listener.
@@ -76,7 +76,7 @@ export default class RestLib {
      * Registers a middleware which will be called for all requests.
      * @param middleware The middleware listener to add for every request.
      */
-    use(middleware: Middleware) {
+    use<C extends Context>(middleware: Middleware<C>) {
         this.#registerMiddleware(middleware)
 
         return this
@@ -195,21 +195,20 @@ export default class RestLib {
      * @param response The response.
      * @private
      */
-    async #handleRequest(serverRequest: IncomingMessage, serverResponse: ServerResponse) {
-        const request = serverRequest as RestRequest
-        const response = serverResponse as RestResponse
+    async #handleRequest(request: IncomingMessage, response: ServerResponse) {
         const { method, url } = request as { method: string; url: string; }
 
-        const [path, query] = url.split('?') as [string, string | undefined]
+        const [path, query = ''] = url.split('?') as [string, string | undefined]
 
-        response.send = helpers.sendJson.bind(this, response)
-        response.sendFile = helpers.sendFile.bind(this, response)
-        request.query = query ?? ''
-        request.queryParams = request.query.length > 0 ? helpers.parseQuery(query) : {}
-
+        const send = helpers.sendJson.bind(this, response)
         const context: Context = {
             request,
             response,
+            send,
+            sendFile: helpers.sendFile.bind(this, { response, send }),
+            query,
+            queryParams: query.length > 0 ? helpers.parseQuery(query) : {},
+            params: {},
         }
 
         if (this.#listeners.has(method)) {
@@ -251,7 +250,7 @@ export default class RestLib {
                     }
                 })
                 if (isMatched) {
-                    context.request.params = params
+                    context.params = params
                 }
 
                 return isMatched
@@ -313,7 +312,7 @@ export default class RestLib {
      * Registers a middleware.
      * @param {import('./utils').Middleware} middleware The middleware to register.
      */
-    #registerMiddleware(middleware: Middleware) {
+    #registerMiddleware<C extends Context>(middleware: Middleware<C>) {
         this.#middleware.push(middleware)
     }
 }

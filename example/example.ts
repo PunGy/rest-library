@@ -1,13 +1,11 @@
 import RestLib from '../src/rest.js'
-import { parseBodyMiddleware, Context, NextFn, BodyJSONParameter } from '../src/utils.js'
+import { parseBodyMiddleware, Context, NextFn } from '../src/utils.js'
 
-type AppContext = Context<BodyJSONParameter>
-
-const onlyAuthorizedMiddleware = (ctx: Context<{ user: string; }>, next: NextFn) => {
+const onlyAuthorizedMiddleware = (ctx: Context & { user: string; }, next: NextFn) => {
     if (ctx.user) {
         next()
     } else {
-        ctx.response.send({ error: 'Unauthorized' }, 401)
+        ctx.send({ error: 'Unauthorized' }, 401)
     }
 }
 

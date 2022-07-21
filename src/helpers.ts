@@ -2,7 +2,7 @@ import { stat } from 'node:fs/promises'
 import { createReadStream } from 'node:fs'
 import { IncomingMessage, ServerResponse } from 'node:http'
 import { fileTypeFromBuffer } from 'file-type'
-import { Context, Listener, NextFn, QueryStringRecord, RestResponse } from './utils'
+import { Context, Listener, NextFn, QueryStringRecord } from './utils'
 
 export type InvertedListener = (next: NextFn) => (ctx: Context) => void;
 
@@ -115,7 +115,7 @@ export function applyNext(middleware: Array<Listener> | Listener): Array<Inverte
  * @param statusCode status code to be sent
  * @param body body to be sent
  */
-export function sendJson(response: ServerResponse, body: any, status = 200): void {
+export function sendJson(response: ServerResponse, body: Record<string, unknown>, status = 200): void {
     let json: string
     try {
         json = JSON.stringify(body)
@@ -138,7 +138,7 @@ export function sendJson(response: ServerResponse, body: any, status = 200): voi
  * @param response response to be sent
  * @param path is the path (desirably absolute) to the file
  */
-export async function sendFile(response: RestResponse, path: string): Promise<void> {
+export async function sendFile({ send, response }: { response: ServerResponse; send: Context['send']; }, path: string): Promise<void> {
     const fileStats = await stat(path).catch(() => null)
     return new Promise((finish, reject) => {
         if (fileStats != null) {
@@ -146,7 +146,7 @@ export async function sendFile(response: RestResponse, path: string): Promise<vo
 
             readFile.on('error', (error) => {
                 reject(error)
-                response.send({ error }, 500)
+                send({ error }, 500)
             })
 
             const firstChunkReader = (chunk: Buffer) => {
@@ -176,7 +176,7 @@ export async function sendFile(response: RestResponse, path: string): Promise<vo
                 finish()
             })
         } else {
-            response.send({ error: 'Not found such file' }, 404)
+            send({ error: 'Not found such file' }, 404)
         }
     })
 }
@@ -199,10 +199,7 @@ export function readData(request: IncomingMessage): Promise<Buffer> {
 /**
  * Parse query string to object
  */
-export function parseQuery(query: string | undefined): QueryStringRecord {
-    if (query == null) {
-        return {}
-    }
+export function parseQuery(query: string): QueryStringRecord {
     const params = query.split('&')
     const result: QueryStringRecord = {}
     params.forEach(param => {
