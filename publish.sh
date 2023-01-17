@@ -1,6 +1,6 @@
 #!/bin/bash
 
-FILES=("rest.*" "utils.*")
+FILES=("rest.*" "utils.* helpers.js")
 
 for file in ${FILES[@]};
 do
