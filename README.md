@@ -3,6 +3,8 @@
 [![npm](https://img.shields.io/npm/dt/rest-library.svg)](https://www.npmjs.com/package/rest-library) [![npm](https://img.shields.io/npm/v/rest-library.svg)](https://www.npmjs.com/package/rest-library)
 [![npm](https://img.shields.io/bundlephobia/min/rest-library)](https://bundlephobia.com/result?p=rest-library) [![node-current](https://img.shields.io/node/v/rest-library)](https://www.npmjs.com/package/rest-library)
 
+### WARNING: Current library realisation is unstable and outdated. A fully reworked version will appear soon.
+
 This is the small library for creating REST applications with express-like middleware.
 
 ## Installation
